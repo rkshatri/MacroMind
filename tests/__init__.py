@@ -1,0 +1,1 @@
+"""MacroMind test package."""

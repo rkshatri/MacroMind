@@ -1,0 +1,1 @@
+"""MacroMind environment package."""
