@@ -20,7 +20,7 @@ the agent's meal plan in plain language with citations from nutrition research.
 Phase 1 — Environment under construction
 
 ## Roadmap
-- [ ] Phase 1: RL Environment
+- [x] Phase 1: RL Environment
 - [ ] Phase 2: PPO Agent
 - [ ] Phase 3: USDA Food Database
 - [ ] Phase 4: RAG + LangChain
