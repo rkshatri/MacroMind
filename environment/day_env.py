@@ -19,7 +19,7 @@ class DayEnv(gymnasium.Env):
         self.target_fat = 65
         
         # Timestep constants
-        self.total_steps = 48  # 30-minute intervals in a day
+        self.total_steps = 36  # 30-minute intervals between 6:00am - 11:30pm
         self.snack_fullness_duration = 6  # steps
         self.meal_fullness_duration = 12  # steps
         
@@ -54,32 +54,23 @@ class DayEnv(gymnasium.Env):
         self.workout_steps = None
         self.fullness_cooldown = None
 
-    def reset(self):
+    def reset(self, *, seed=None, options=None):
         """
         Reset the environment to the initial state.
         
+        Args:
+            seed (int, optional): Gymnasium seed for reproducibility.
+            options (dict, optional): Additional reset options.
+
         Returns:
             tuple: (observation, info)
         """
-        # Three hardcoded schedule archetypes
-        light_busy = [8, 9, 18, 19]
-        light_workout = []  # No workouts on light days
-        busy_busy = [8, 9, 10, 12, 13, 18, 19, 20, 22]
-        busy_workout = []  # Busy days have busy times but no dedicated workouts
-        workout_busy = [8, 9, 18, 19]  # Some busy times
-        workout_workout = [6, 7, 12, 13]  # Dedicated workout times
-        
-        # Randomly pick an archetype
+        if seed is not None:
+            random.seed(seed)
+
         archetype = random.choice(['light', 'busy', 'workout'])
-        if archetype == 'light':
-            self.busy_blocks = light_busy
-            self.workout_steps = light_workout
-        elif archetype == 'busy':
-            self.busy_blocks = busy_busy
-            self.workout_steps = busy_workout
-        else:  # workout
-            self.busy_blocks = workout_busy
-            self.workout_steps = workout_workout
+        self.busy_blocks, self.workout_steps = self._generate_schedule(archetype)
+        self.current_archetype = archetype
         
         # Initialize hunger and fullness
         self.hunger = 0.3  # Wake up moderately hungry
@@ -112,6 +103,51 @@ class DayEnv(gymnasium.Env):
         self.fullness_cooldown = 0
         
         return self._get_obs(), {}
+    
+    def _generate_schedule(self, archetype):
+        busy_blocks = set()
+        workout_steps = set()
+
+        def add_block(start, length, blocked):
+            block = set(range(start, start + length))
+            if block & blocked:
+                return set()
+            return block
+
+        if archetype == 'light':
+            windows = [(2, 6), (20, 28)]
+            for lo, hi in windows:
+                if random.random() < 0.7:
+                    start = random.randint(lo, hi)
+                    length = random.randint(1, 2)
+                    busy_blocks |= add_block(start, length, busy_blocks)
+
+        elif archetype == 'busy':
+            attempts = 0
+            while len(busy_blocks) < 6 and attempts < 30:
+                start = random.randint(3, 26)
+                length = random.randint(2, 3)
+                busy_blocks |= add_block(start, length, busy_blocks)
+                attempts += 1
+
+        elif archetype == 'workout':
+            workout_window = random.choice(['morning', 'afternoon'])
+            start = random.randint(1, 5) if workout_window == 'morning' else random.randint(18, 22)
+            length = random.randint(3, 5)
+            workout_steps |= add_block(start, length, set())
+            workout_steps = {s for s in workout_steps if s < self.total_steps}
+
+            for lo, hi in [(8, 12), (20, 26)]:
+                if random.random() < 0.6:
+                    start = random.randint(lo, hi)
+                    length = random.randint(1, 2)
+                    busy_blocks |= add_block(start, length, workout_steps | busy_blocks)
+
+        # Enforce boundary — no blocks in first 2 or last 2 steps
+        busy_blocks = {s for s in busy_blocks if 2 <= s <= self.total_steps - 2}
+        workout_steps = {s for s in workout_steps if 2 <= s <= self.total_steps - 2}
+
+        return sorted(busy_blocks), sorted(workout_steps)
     
     def _get_obs(self):
         """
@@ -234,12 +270,22 @@ class DayEnv(gymnasium.Env):
         # Increment timestep
         self.current_step += 1
         
-        # Check if action is valid
-        is_busy = self.current_step in self.busy_blocks
-        is_on_cooldown = self.fullness_cooldown > 0
+        # Remember the attempted action before any override.
+        attempted_action = action
         
-        if is_busy or is_on_cooldown:
-            action = 0  # Override to wait
+        # Check if action is valid
+        is_on_cooldown = self.fullness_cooldown > 0
+        if is_on_cooldown:
+            action = 0
+
+        is_busy = self.current_step in self.busy_blocks
+        is_workout = self.current_step in self.workout_steps
+        self.attempted_during_restricted = (attempted_action != 0) and (is_busy or is_workout)
+
+        # if is_busy or is_workout:
+        #     action = 0
+
+        effective_action = action
         
         # Apply meal if action is 1 (snack) or 2 (meal)
         if action == 1:
@@ -257,36 +303,45 @@ class DayEnv(gymnasium.Env):
         # Check if done
         done = self.current_step >= self.total_steps
         
+        info = {
+            "attempted_action": attempted_action,
+            "effective_action": effective_action,
+            "action_overridden": effective_action != attempted_action,
+            "is_busy": is_busy,
+            "is_workout": is_workout,
+            "is_on_cooldown": is_on_cooldown,
+        }
+        
         # Return observation, reward, done, truncated, info
-        return self._get_obs(), reward, done, False, {}
+        return self._get_obs(), reward, done, False, info
 
     def _calculate_reward(self):
-        """
-        Calculate the reward for the current state.
-        
-        Returns:
-            float: The reward value
-        """
         reward = 0.0
-        
-        # Subtract hunger penalty per step
-        reward -= self.hunger * 0.1
-        
-        # At end of day only: macro target rewards
+
+        # Hunger penalty per step
+        reward -= self.hunger * 0.2
+
+        # Penalty for attempting to eat during busy or workout
+        if self.attempted_during_restricted:
+            reward -= 0.2
+
+        # End of day macro rewards
         if self.current_step >= self.total_steps:
-            # Calculate how close each macro is to target
-            macros = [
+            all_hit = True
+            for consumed, target in [
                 (self.calories_consumed, self.target_calories),
                 (self.protein_consumed, self.target_protein),
                 (self.carbs_consumed, self.target_carbs),
                 (self.fat_consumed, self.target_fat)
-            ]
-            
-            for consumed, target in macros:
-                if target > 0:
-                    # Proportional reward: closer to target = higher reward
-                    deviation = abs(consumed - target) / target
-                    macro_reward = 1.0 - deviation  # 1.0 for perfect, 0.0 for 100% deviation
-                    reward += macro_reward
-        
+            ]:
+                deviation = abs(consumed - target) / target
+                macro_reward = max(0.0, 1.0 - deviation)
+                reward += macro_reward
+                if deviation > 0.1:
+                    all_hit = False
+
+            # Bonus for hitting all four within 10%
+            if all_hit:
+                reward += 1.0
+
         return reward
