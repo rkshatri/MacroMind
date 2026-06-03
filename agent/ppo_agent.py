@@ -38,8 +38,8 @@ class MacroMindAgent:
                 policy="MlpPolicy",
                 env=env,
                 learning_rate=3e-4,
-                n_steps=360,  # 36 steps × 10 episodes per update
-                batch_size=72,
+                n_steps=300,  # 30 steps × 10 episodes per update
+                batch_size=60,
                 n_epochs=10,
                 gamma=0.99,
                 clip_range=0.2,
@@ -85,7 +85,7 @@ class MacroMindAgent:
         import numpy as np
         
         def step_time_label(step_index):
-            total_minutes = 6 * 60 + 30 + step_index * 30
+            total_minutes = 8 * 60 + step_index * 30
             hour = (total_minutes // 60) % 12
             if hour == 0:
                 hour = 12
@@ -105,7 +105,7 @@ class MacroMindAgent:
                 print(f"Schedule: {self.env.env.current_archetype}")
                 print(f"Busy steps: {self.env.env.busy_blocks}")
                 print(f"Workout steps: {self.env.env.workout_steps}")
-                print("time     | schedule | action | hunger | calories | protein | carbs | fat | reward")
+                print("time     | schedule | action | food                      | hunger | calories | protein | carbs | fat | reward")
             
             while not done:
                 action = self.predict(obs)
@@ -113,8 +113,10 @@ class MacroMindAgent:
                 total_reward += reward
 
                 effective_action = info.get("effective_action", action)
+                food_name = (self.env.env.last_food_eaten or "---")
                 if effective_action == 0:
                     action_text = "---"
+                    food_name = "---"
                 elif effective_action == 1:
                     action_text = "snack"
                 elif effective_action == 2:
@@ -136,11 +138,12 @@ class MacroMindAgent:
                         f"{step_time_label(step):8s} | "
                         f"{schedule:8s} | "
                         f"{action_text:6s} | "
+                        f"{food_name:25.40s} | "
                         f"{self.env.env.hunger:6.3f} | "
-                        f"{self.env.env.calories_consumed:8d} | "
-                        f"{self.env.env.protein_consumed:7d} | "
-                        f"{self.env.env.carbs_consumed:5d} | "
-                        f"{self.env.env.fat_consumed:3d} | "
+                        f"{self.env.env.calories_consumed:8.0f} | "
+                        f"{self.env.env.protein_consumed:7.0f} | "
+                        f"{self.env.env.carbs_consumed:5.0f} | "
+                        f"{self.env.env.fat_consumed:3.0f} | "
                         f"{reward:6.3f}"
                     )
                 

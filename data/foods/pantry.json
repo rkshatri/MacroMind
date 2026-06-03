@@ -1,0 +1,172 @@
+{
+  "foods": [
+    {
+      "name": "Veggie Sausage Patties",
+      "brand": "MorningStar Farms",
+      "unit": "patties",
+      "calories_per_unit": 240,
+      "protein_per_unit": 30,
+      "carbs_per_unit": 6,
+      "fat_per_unit": 9,
+      "default_quantity": 1,
+      "meal_type": "breakfast",
+      "notes": "3 patties, 80cal/10p/2c/1f each"
+    },
+    {
+      "name": "Scrambled Eggs",
+      "brand": null,
+      "unit": "serving",
+      "calories_per_unit": 140,
+      "protein_per_unit": 12,
+      "carbs_per_unit": 1,
+      "fat_per_unit": 10,
+      "default_quantity": 1,
+      "meal_type": "breakfast",
+      "notes": "2 large eggs"
+    },
+    {
+      "name": "Tofurkey Sandwiches",
+      "brand": "Tofurkey",
+      "unit": "sandwiches",
+      "calories_per_unit": 720,
+      "protein_per_unit": 48,
+      "carbs_per_unit": 88,
+      "fat_per_unit": 16,
+      "default_quantity": 1,
+      "meal_type": "any",
+      "notes": "2 sandwiches: 4 slices bread ~280cal, 15 slices tofurkey ~270cal, tomato ~20cal, lettuce negligible"
+    },
+    {
+      "name": "Black Bean Quesadillas",
+      "brand": null,
+      "unit": "quesadillas",
+      "calories_per_unit": 870,
+      "protein_per_unit": 36,
+      "carbs_per_unit": 102,
+      "fat_per_unit": 33,
+      "default_quantity": 1,
+      "meal_type": "any",
+      "notes": "3 quesadillas: 3 tortillas ~300cal, half can black beans ~200cal, 3 handfuls mexican cheese ~375cal"
+    },
+    {
+      "name": "Veggie Chicken Pasta",
+      "brand": "MorningStar Farms",
+      "unit": "bowl",
+      "calories_per_unit": 620,
+      "protein_per_unit": 32,
+      "carbs_per_unit": 84,
+      "fat_per_unit": 14,
+      "default_quantity": 1,
+      "meal_type": "any",
+      "notes": "1 serving pasta ~200cal, marinara ~80cal, 1 serving veggie chicken strips ~120cal, parmesan ~220cal"
+    },
+    {
+      "name": "Nachos",
+      "brand": null,
+      "unit": "plate",
+      "calories_per_unit": 750,
+      "protein_per_unit": 24,
+      "carbs_per_unit": 82,
+      "fat_per_unit": 36,
+      "default_quantity": 1,
+      "meal_type": "any",
+      "notes": "tortilla chips ~400cal, black beans ~100cal, cheese ~200cal, lettuce+tomato negligible"
+    },
+    {
+      "name": "Maruchan Tofu Ramen",
+      "brand": "Maruchan",
+      "unit": "bowl",
+      "calories_per_unit": 840,
+      "protein_per_unit": 42,
+      "carbs_per_unit": 104,
+      "fat_per_unit": 24,
+      "default_quantity": 1,
+      "meal_type": "any",
+      "notes": "4 servings ramen ~760cal/12p/104c/28f, 3 servings simple truth tofu ~80cal/12p/0c/4f"
+    },
+    {
+      "name": "Pasta Prima Ravioli",
+      "brand": "Pasta Prima",
+      "unit": "pieces",
+      "calories_per_unit": 680,
+      "protein_per_unit": 28,
+      "carbs_per_unit": 88,
+      "fat_per_unit": 22,
+      "default_quantity": 1,
+      "meal_type": "any",
+      "notes": "20 pieces, approx 34cal each"
+    },
+    {
+      "name": "Hummus and Carrots",
+      "brand": null,
+      "unit": "serving",
+      "calories_per_unit": 180,
+      "protein_per_unit": 6,
+      "carbs_per_unit": 22,
+      "fat_per_unit": 8,
+      "default_quantity": 1,
+      "meal_type": "snack",
+      "notes": "4 tbsp hummus ~140cal, handful carrots ~40cal"
+    },
+    {
+      "name": "Costco Whey Protein Shake",
+      "brand": "Kirkland",
+      "unit": "shake",
+      "calories_per_unit": 160,
+      "protein_per_unit": 24,
+      "carbs_per_unit": 8,
+      "fat_per_unit": 3,
+      "default_quantity": 1,
+      "meal_type": "snack",
+      "notes": "standard whey scoop with water"
+    },
+    {
+      "name": "Fairlife Protein Shake",
+      "brand": "Fairlife",
+      "unit": "bottle",
+      "calories_per_unit": 150,
+      "protein_per_unit": 30,
+      "carbs_per_unit": 4,
+      "fat_per_unit": 2,
+      "default_quantity": 1,
+      "meal_type": "snack",
+      "notes": "Fairlife Nutrition Plan 30g protein"
+    },
+    {
+      "name": "Peanut Butter Pretzels",
+      "brand": null,
+      "unit": "serving",
+      "calories_per_unit": 200,
+      "protein_per_unit": 5,
+      "carbs_per_unit": 24,
+      "fat_per_unit": 9,
+      "default_quantity": 1,
+      "meal_type": "snack",
+      "notes": "approx 1 oz serving"
+    },
+    {
+      "name": "Banana",
+      "brand": null,
+      "unit": "banana",
+      "calories_per_unit": 105,
+      "protein_per_unit": 1,
+      "carbs_per_unit": 27,
+      "fat_per_unit": 0,
+      "default_quantity": 1,
+      "meal_type": "snack",
+      "notes": "medium banana"
+    },
+    {
+      "name": "Apple",
+      "brand": null,
+      "unit": "apple",
+      "calories_per_unit": 95,
+      "protein_per_unit": 0,
+      "carbs_per_unit": 25,
+      "fat_per_unit": 0,
+      "default_quantity": 1,
+      "meal_type": "snack",
+      "notes": "medium apple"
+    }
+  ]
+}

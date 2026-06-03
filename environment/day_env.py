@@ -2,6 +2,7 @@ import gymnasium
 import numpy as np
 import random
 from gymnasium import spaces
+from data.food_library import FoodLibrary
 
 
 class DayEnv(gymnasium.Env):
@@ -13,13 +14,13 @@ class DayEnv(gymnasium.Env):
         super().__init__()
         
         # Fixed macro targets (in grams or kcal)
-        self.target_calories = 2000
+        self.target_calories = 2400
         self.target_protein = 150
         self.target_carbs = 200
         self.target_fat = 65
         
         # Timestep constants
-        self.total_steps = 36  # 30-minute intervals between 6:00am - 11:30pm
+        self.total_steps = 30  # 30-minute intervals between 8:00am - 11:00pm
         self.snack_fullness_duration = 6  # steps
         self.meal_fullness_duration = 12  # steps
         
@@ -39,6 +40,9 @@ class DayEnv(gymnasium.Env):
         self.fullness = None
         self.current_step = None
         self.last_meal_step = None
+        self.last_food_eaten = None
+        # Food library
+        self.food_library = FoodLibrary("data/foods/pantry.json")
         self.calories_consumed = None
         self.protein_consumed = None
         self.carbs_consumed = None
@@ -101,6 +105,7 @@ class DayEnv(gymnasium.Env):
         
         # Reset fullness timers
         self.fullness_cooldown = 0
+        self.last_food_eaten = None
         
         return self._get_obs(), {}
     
@@ -217,43 +222,55 @@ class DayEnv(gymnasium.Env):
             meal_type (str): Either 'snack' or 'meal'
         """
         if meal_type == 'snack':
-            # Snack: moderate fullness boost
+            food = self.food_library.get_best_match(
+                self.calories_remaining,
+                self.protein_remaining,
+                self.carbs_remaining,
+                self.fat_remaining,
+                meal_type='snack'
+            )
             self.fullness = 0.5
-            self.fullness_cooldown = 3  # Single cooldown
+            self.fullness_cooldown = 3
             self.snacks_eaten += 1
-            
-            # Placeholder macro contribution for a snack
-            # TODO: Replace with real food database lookup
-            meal_calories = 150
-            meal_protein = 5
-            meal_carbs = 20
-            meal_fat = 5
-            
+
         elif meal_type == 'meal':
-            # Meal: significant fullness boost
+            step_meal_type = self.food_library.get_meal_type_for_step(
+                self.current_step, self.total_steps
+            )
+            food = self.food_library.get_best_match(
+                self.calories_remaining,
+                self.protein_remaining,
+                self.carbs_remaining,
+                self.fat_remaining,
+                meal_type=step_meal_type
+            )
             self.fullness = 0.9
-            self.fullness_cooldown = 6  # Single cooldown
+            self.fullness_cooldown = 6
             self.meals_eaten += 1
-            
-            # Placeholder macro contribution for a meal
-            # TODO: Replace with real food database lookup
-            meal_calories = 600
-            meal_protein = 40
-            meal_carbs = 60
-            meal_fat = 20
-        
-        # Update consumed macros
-        self.calories_consumed += meal_calories
-        self.protein_consumed += meal_protein
-        self.carbs_consumed += meal_carbs
-        self.fat_consumed += meal_fat
-        
+
+        else:
+            # Unknown meal type — do nothing
+            return
+
+        if food is None:
+            # no candidate found; do nothing
+            return
+
+        # Apply macros from selected food
+        self.calories_consumed += food.get('total_calories', 0)
+        self.protein_consumed += food.get('total_protein', 0)
+        self.carbs_consumed += food.get('total_carbs', 0)
+        self.fat_consumed += food.get('total_fat', 0)
+
         # Update remaining macros
         self.calories_remaining = self.target_calories - self.calories_consumed
         self.protein_remaining = self.target_protein - self.protein_consumed
         self.carbs_remaining = self.target_carbs - self.carbs_consumed
         self.fat_remaining = self.target_fat - self.fat_consumed
-        
+
+        # Store last eaten for logging
+        self.last_food_eaten = food.get('name')
+
         # Update last meal step
         self.last_meal_step = self.current_step
         
@@ -282,8 +299,8 @@ class DayEnv(gymnasium.Env):
         is_workout = self.current_step in self.workout_steps
         self.attempted_during_restricted = (attempted_action != 0) and (is_busy or is_workout)
 
-        # if is_busy or is_workout:
-        #     action = 0
+        if is_busy or is_workout:
+            action = 0
 
         effective_action = action
         
