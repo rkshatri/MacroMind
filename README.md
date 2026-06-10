@@ -23,6 +23,6 @@ Phase 1 — Environment under construction
 - [x] Phase 1: RL Environment
 - [x] Phase 2: PPO Agent
 - [x] Phase 3: USDA Food Database
-- [ ] Phase 4: RAG + LangChain
+- [x] Phase 4: RAG + LangChain
 - [ ] Phase 5: AWS Deployment
 - [ ] Phase 6: Visualization

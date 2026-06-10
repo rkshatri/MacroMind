@@ -157,3 +157,76 @@ class MacroMindAgent:
         print(f"Evaluation over {n_episodes} episodes:")
         print(f"  Mean reward: {mean_reward:.3f}")
         print(f"  Std reward: {std_reward:.3f}")
+
+def run_episode_with_plan(model, env):
+    obs, _ = env.reset()
+    done = False
+    meals = []
+
+    prev_calories = 0
+    prev_protein = 0
+    prev_carbs = 0
+    prev_fat = 0
+    while not done:
+        action, _ = model.predict(obs, deterministic=True)
+
+        is_cooldown = env.fullness_cooldown > 0
+        is_busy = (env.current_step + 1) in env.busy_blocks
+        is_workout = (env.current_step + 1) in env.workout_steps
+        effective = 0 if (is_cooldown or is_busy or is_workout) else int(action)
+
+        obs, reward, done, truncated, info = env.step(action)
+
+        if effective in [1, 2] and env.last_food_eaten:
+            time_label = step_to_time(env.current_step)
+            meals.append({
+                "time": time_label,
+                "type": "snack" if effective == 1 else "meal",
+                "food": env.last_food_eaten,
+                "calories": env.calories_consumed - prev_calories,
+                "protein": env.protein_consumed - prev_protein,
+                "carbs": env.carbs_consumed - prev_carbs,
+                "fat": env.fat_consumed - prev_fat
+            })
+            prev_calories = env.calories_consumed
+            prev_protein = env.protein_consumed
+            prev_carbs = env.carbs_consumed
+            prev_fat = env.fat_consumed
+
+    meal_plan = {
+        "schedule_type": env.current_archetype,
+        "busy_steps": env.busy_blocks,
+        "workout_steps": env.workout_steps,
+        "meals": meals,
+        "totals": {
+            "calories": env.calories_consumed,
+            "protein": env.protein_consumed,
+            "carbs": env.carbs_consumed,
+            "fat": env.fat_consumed
+        },
+        "targets": {
+            "calories": env.target_calories,
+            "protein": env.target_protein,
+            "carbs": env.target_carbs,
+            "fat": env.target_fat
+        }
+    }
+
+    return meal_plan
+    
+
+def step_to_time(step):
+    minutes = 6 * 60 + step * 30
+    hours = minutes // 60
+    mins = minutes % 60
+    ampm = "am" if hours < 12 else "pm"
+    hours = hours if hours <= 12 else hours - 12
+    return f"{hours}:{mins:02d}{ampm}"
+
+
+# Test
+if __name__ == "__main__":
+
+    env = make_env()
+    agent = MacroMindAgent(env=env, model_path='models/ppo_macromind.zip')
+    print(run_episode_with_plan(model=agent, env=env))

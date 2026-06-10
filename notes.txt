@@ -1,0 +1,2 @@
+For food_profiles.txt, implement an LLM that retrieves current pantry and runs
+nutrional diagnostic/reasoning for each food item, then add to file.
