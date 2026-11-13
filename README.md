@@ -5,8 +5,8 @@ around your schedule and physical activity.
 
 ## What it does
 MacroMind simulates a full day in 30-minute timesteps. A PPO agent learns 
-when to eat, what to eat, and how much — balancing hunger, macro targets, 
-and a dynamic daily schedule. A RAG pipeline powered by LangChain explains 
+when to eat, what to eat, and how much by balancing hunger, macro targets, 
+and a dynamic daily schedule. The RAG pipeline is built using LangChain and explains 
 the agent's meal plan in plain language with citations from nutrition research.
 
 ## Stack
@@ -24,5 +24,4 @@ Phase 1 — Environment under construction
 - [x] Phase 2: PPO Agent
 - [x] Phase 3: USDA Food Database
 - [x] Phase 4: RAG + LangChain
-- [ ] Phase 5: AWS Deployment
-- [ ] Phase 6: Visualization
+- [x] Phase 5: Visualization
