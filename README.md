@@ -16,7 +16,7 @@ the agent's meal plan in plain language with citations from nutrition research.
 - **Viz:** FastAPI, React
 
 ## Project Status
-Phase 1 — Environment under construction
+Phase 5: Visualization
 
 ## Roadmap
 - [x] Phase 1: RL Environment
