@@ -12,9 +12,8 @@ the agent's meal plan in plain language with citations from nutrition research.
 ## Stack
 - **RL:** Stable-Baselines3 (PPO), Gymnasium
 - **Data:** USDA FoodData Central API
-- **LLM Layer:** LangChain, FAISS
-- **Cloud:** AWS EC2, S3
-- **Viz:** (coming soon)
+- **LLM Layer:** Ollama, LangChain, FAISS
+- **Viz:** FastAPI, React
 
 ## Project Status
 Phase 1 — Environment under construction
