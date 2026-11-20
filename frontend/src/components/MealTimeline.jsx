@@ -60,32 +60,9 @@ const formatRange = (group) => {
   return `${start} – ${hour}:${minute.toString().padStart(2, '0')}${suffix}`
 }
 
-const normalizeRoutine = (routine) => {
-  if (!routine) return []
-  if (Array.isArray(routine)) return routine
-  if (typeof routine === 'object' && 'start' in routine && 'end' in routine) {
-    return [routine.start, routine.end]
-  }
-  return [routine]
-}
-
-function MealTimeline({ meals, busyBlocks, workoutBlocks, morningRoutine, eveningCutoff }) {
-  const routineTimes = normalizeRoutine(morningRoutine)
-  const eveningTimes = normalizeRoutine(eveningCutoff)
-
+function MealTimeline({ meals, busyBlocks, workoutBlocks }) {
   const entries = useMemo(() => {
     const items = []
-
-    if (routineTimes.length) {
-      const start = routineTimes[0]
-      const end = routineTimes[routineTimes.length - 1]
-      items.push({
-        type: 'routine',
-        time: start,
-        label: routineTimes.length > 1 ? `morning routine · ${start} – ${end}` : 'morning routine',
-        order: parseMinutes(start),
-      })
-    }
 
     if (Array.isArray(busyBlocks)) {
       if (busyBlocks.every(isTimeBlock)) {
@@ -144,19 +121,8 @@ function MealTimeline({ meals, busyBlocks, workoutBlocks, morningRoutine, evenin
       })
     })
 
-    if (eveningTimes.length) {
-      const start = eveningTimes[0]
-      const end = eveningTimes[eveningTimes.length - 1]
-      items.push({
-        type: 'routine',
-        time: start,
-        label: eveningTimes.length > 1 ? `evening wind-down · ${start} – ${end}` : 'evening wind-down',
-        order: parseMinutes(start),
-      })
-    }
-
     return items.sort((a, b) => a.order - b.order)
-  }, [meals, busyBlocks, workoutBlocks, morningRoutine, eveningCutoff])
+  }, [meals, busyBlocks, workoutBlocks])
 
   return (
     <div className="card">

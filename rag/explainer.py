@@ -1,7 +1,6 @@
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import PromptTemplate
 from rag.embedder import load_vector_store
-from agent.ppo_agent import step_to_time
 import os
 
 def build_query(meal_plan):
@@ -20,11 +19,9 @@ def build_query(meal_plan):
     return " ".join(parts)
 
 def format_steps(steps):
-        if not steps:
-            return None
-        sorted_steps = sorted(set(steps))
-        times = [step_to_time(step - 1) for step in sorted_steps]
-        return ", ".join(times)
+    if not steps:
+        return None
+    return ", ".join(steps)
 
 def retrieve_context(query, vector_store, k=3):
     results = vector_store.similarity_search(query, k=k)
@@ -112,8 +109,8 @@ CRITICAL STYLE RULES:
     )
 
     schedule_type = meal_plan.get("schedule_type", "Unknown")
-    busy_times = format_steps(meal_plan.get("busy_steps") or [])
-    workout_times = format_steps(meal_plan.get("workout_steps") or [])
+    busy_times = format_steps(meal_plan.get("busy_blocks") or [])
+    workout_times = format_steps(meal_plan.get("workout_blocks") or [])
     schedule_parts = [f"{schedule_type} day"]
     if busy_times:
         schedule_parts.append(f"busy blocks at {busy_times}")

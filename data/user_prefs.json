@@ -1,0 +1,9 @@
+{
+  "wake_time": "6:00am",
+  "targets": {
+    "calories": 2500,
+    "protein": 150,
+    "carbs": 200,
+    "fat": 65
+  }
+}
