@@ -29,8 +29,8 @@ def test_environment_step_loop():
 
         print(
             f"{step + 1:4d} | "
-            f"{action_text:5s} | "
-            f"{str(overridden):9s} | "
+            f"{action_text:6s} | "
+            f"{str(overridden):10s} | "
             f"{env.hunger:6.3f} | "
             f"{env.fullness:8.3f} | "
             f"{env.fullness_cooldown:8d} | "

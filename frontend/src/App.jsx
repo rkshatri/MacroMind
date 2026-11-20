@@ -10,13 +10,15 @@ import { generatePlan } from './api'
 
 const defaultPrefs = {
   wake_time: '6:00am',
-  first_meal_time: '7:30am',
-  evening_cutoff_time: '9:30pm',
   targets: {
-    calories: 2400,
-    protein: 150,
-    carbs: 200,
-    fat: 65,
+    // calories: 2400,
+    // protein: 150,
+    // carbs: 200,
+    // fat: 65,
+    calories: 1900,
+    protein: 105,
+    carbs: 240,
+    fat: 55,
   },
 }
 
@@ -59,24 +61,6 @@ const timeToStep = (timeStr, wakeTime) => {
   let wakeMinutes = wake.hour * 60 + wake.minute
   let step = Math.floor((totalMinutes - wakeMinutes) / 30)
   return Math.max(0, Math.min(step, 29))
-}
-
-const getDefaultMorningRoutine = (wakeTime, firstMealTime) => {
-  const step = timeToStep(firstMealTime, wakeTime)
-  if (step <= 0) return null
-  return {
-    start: wakeTime,
-    end: addMinutes(wakeTime, step * 30),
-  }
-}
-
-const getDefaultEveningWinddown = (wakeTime, eveningCutoffTime) => {
-  const step = timeToStep(eveningCutoffTime, wakeTime)
-  const start = addMinutes(wakeTime, step * 30)
-  return {
-    start,
-    end: addMinutes(start, 30),
-  }
 }
 
 const loadingSteps = [
@@ -141,19 +125,11 @@ function HeroIllustration() {
 function App() {
   const [view, setView] = useState('setup')
   const [prefs, setPrefs] = useState(defaultPrefs)
-  const [schedule, setSchedule] = useState(() => {
-    const busyBlocks = []
-    const morningBlock = getDefaultMorningRoutine(defaultPrefs.wake_time, defaultPrefs.first_meal_time)
-    if (morningBlock) busyBlocks.push(morningBlock)
-    busyBlocks.push(getDefaultEveningWinddown(defaultPrefs.wake_time, defaultPrefs.evening_cutoff_time))
-    return {
-      busy_blocks: busyBlocks,
-      workout_blocks: [],
-    }
-  })
+  const [schedule, setSchedule] = useState(() => ({
+    busy_blocks: [],
+    workout_blocks: [],
+  }))
   const [showPantry, setShowPantry] = useState(false)
-  const [hasMorningRoutine, setHasMorningRoutine] = useState(true)
-  const [hasEveningWinddown, setHasEveningWinddown] = useState(true)
   const [mealPlan, setMealPlan] = useState(null)
   const [loadingStep, setLoadingStep] = useState(0)
   const howItWorksRef = useRef(null)
@@ -177,33 +153,7 @@ function App() {
   }
 
   const handleWakeTimeChange = (newWakeTime) => {
-    const oldWakeTime = prefs.wake_time
     setPrefs((current) => ({ ...current, wake_time: newWakeTime }))
-
-    if (hasMorningRoutine || hasEveningWinddown) {
-      const oldMorningRoutine = getDefaultMorningRoutine(oldWakeTime, prefs.first_meal_time)
-      const oldEveningWinddown = getDefaultEveningWinddown(oldWakeTime, prefs.evening_cutoff_time)
-      const nextMorningRoutine = getDefaultMorningRoutine(newWakeTime, prefs.first_meal_time)
-      const nextEveningWinddown = getDefaultEveningWinddown(newWakeTime, prefs.evening_cutoff_time)
-
-      setSchedule((currentSchedule) => {
-        const nextBusyBlocks = currentSchedule.busy_blocks
-          .map((block) => {
-            const isMorning = hasMorningRoutine && oldMorningRoutine && block.start === oldMorningRoutine.start && block.end === oldMorningRoutine.end
-            const isEvening = hasEveningWinddown && block.start === oldEveningWinddown.start && block.end === oldEveningWinddown.end
-
-            if (isMorning) return nextMorningRoutine
-            if (isEvening) return nextEveningWinddown
-            return block
-          })
-          .filter(Boolean)
-
-        return {
-          ...currentSchedule,
-          busy_blocks: nextBusyBlocks,
-        }
-      })
-    }
   }
 
   const handleGenerate = async () => {
@@ -225,18 +175,10 @@ function App() {
 
   const resetPlan = () => {
     setPrefs(defaultPrefs)
-    setSchedule(() => {
-      const busyBlocks = []
-      const morningBlock = getDefaultMorningRoutine(defaultPrefs.wake_time, defaultPrefs.first_meal_time)
-      if (morningBlock) busyBlocks.push(morningBlock)
-      busyBlocks.push(getDefaultEveningWinddown(defaultPrefs.wake_time, defaultPrefs.evening_cutoff_time))
-      return {
-        busy_blocks: busyBlocks,
-        workout_blocks: [],
-      }
-    })
-    setHasMorningRoutine(true)
-    setHasEveningWinddown(true)
+    setSchedule(() => ({
+      busy_blocks: [],
+      workout_blocks: [],
+    }))
     setMealPlan(null)
     setView('setup')
     demoRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -326,10 +268,6 @@ function App() {
                 onGenerate={handleGenerate}
                 prefs={prefs}
                 onWakeTimeChange={handleWakeTimeChange}
-                hasMorningRoutine={hasMorningRoutine}
-                setHasMorningRoutine={setHasMorningRoutine}
-                hasEveningWinddown={hasEveningWinddown}
-                setHasEveningWinddown={setHasEveningWinddown}
               />
             </aside>
 
@@ -350,20 +288,8 @@ function App() {
 
                   <MealTimeline
                     meals={mealPlan.meals}
-                    busyBlocks={schedule.busy_blocks.filter((block) => {
-                      const morningRoutineBlock = hasMorningRoutine &&
-                        block.start === prefs.wake_time &&
-                        block.end === prefs.first_meal_time
-
-                      const eveningWinddownBlock = hasEveningWinddown &&
-                        block.start === prefs.evening_cutoff_time &&
-                        block.end === getDayEndTime(prefs.wake_time)
-
-                      return !morningRoutineBlock && !eveningWinddownBlock
-                    })}
+                    busyBlocks={schedule.busy_blocks}
                     workoutBlocks={workoutBlocksForTimeline}
-                    morningRoutine={mealPlan.morning_routine}
-                    eveningCutoff={mealPlan.evening_cutoff}
                   />
                   <MacroProgress totals={mealPlan.totals} targets={mealPlan.targets} />
                   <HungerCurve hungerCurve={mealPlan.hunger_curve} wakeTime={prefs.wake_time} />
@@ -401,10 +327,12 @@ function App() {
             <div>
               <p className="section-label">INFRASTRUCTURE</p>
               <h3>FastAPI + React</h3>
-              <p>Backend API, Vite frontend, AWS EC2 with S3 and CloudFront, all built on Python 3.11.</p>
+              <p>Backend API, Vite frontend, all built on Python and React.</p>
             </div>
           </div>
           <p className="footer-tagline" style={{ marginTop: '60px' }}>Built by Rohan Kshatriya · 2026</p>
+          <hr style={{marginTop: '20px'}}></hr>
+          <p className="footer-disclaimer" style={{ marginTop: '20px' }}>*MacroMind is for educational and informational purposes only. Consult a healthcare provider before making dietary changes.</p>
         </footer>
       </main>
 

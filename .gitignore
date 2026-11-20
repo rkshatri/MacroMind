@@ -219,3 +219,7 @@ __marimo__/
 
 # Stable-Baselines3 model artifacts
 models/*.zip
+!models/ppo_macromind.zip
+
+node_modules/
+.DS_Store

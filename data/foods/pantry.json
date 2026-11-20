@@ -1,18 +1,6 @@
 {
   "foods": [
     {
-      "name": "Veggie Sausage Patties",
-      "brand": "MorningStar Farms",
-      "unit": "patties",
-      "calories_per_unit": 240,
-      "protein_per_unit": 30,
-      "carbs_per_unit": 6,
-      "fat_per_unit": 9,
-      "default_quantity": 1,
-      "meal_type": "breakfast",
-      "notes": "3 patties, 80cal/10p/2c/1f each"
-    },
-    {
       "name": "Scrambled Eggs",
       "brand": null,
       "unit": "serving",
@@ -37,18 +25,6 @@
       "notes": "2 sandwiches: 4 slices bread ~280cal, 15 slices tofurkey ~270cal, tomato ~20cal, lettuce negligible"
     },
     {
-      "name": "Black Bean Quesadillas",
-      "brand": null,
-      "unit": "quesadillas",
-      "calories_per_unit": 870,
-      "protein_per_unit": 36,
-      "carbs_per_unit": 102,
-      "fat_per_unit": 33,
-      "default_quantity": 1,
-      "meal_type": "any",
-      "notes": "3 quesadillas: 3 tortillas ~300cal, half can black beans ~200cal, 3 handfuls mexican cheese ~375cal"
-    },
-    {
       "name": "Veggie Chicken Pasta",
       "brand": "MorningStar Farms",
       "unit": "bowl",
@@ -71,18 +47,6 @@
       "default_quantity": 1,
       "meal_type": "any",
       "notes": "tortilla chips ~400cal, black beans ~100cal, cheese ~200cal, lettuce+tomato negligible"
-    },
-    {
-      "name": "Maruchan Tofu Ramen",
-      "brand": "Maruchan",
-      "unit": "bowl",
-      "calories_per_unit": 840,
-      "protein_per_unit": 42,
-      "carbs_per_unit": 104,
-      "fat_per_unit": 24,
-      "default_quantity": 1,
-      "meal_type": "any",
-      "notes": "4 servings ramen ~760cal/12p/104c/28f, 3 servings simple truth tofu ~80cal/12p/0c/4f"
     },
     {
       "name": "Pasta Prima Ravioli",
@@ -167,6 +131,16 @@
       "default_quantity": 1,
       "meal_type": "snack",
       "notes": "medium apple"
+    },
+    {
+      "name": "Greek Yogurt",
+      "meal_type": "any",
+      "calories_per_unit": 140,
+      "protein_per_unit": 20,
+      "carbs_per_unit": 9,
+      "fat_per_unit": 3,
+      "unit": "serving",
+      "default_quantity": 1
     }
   ]
 }

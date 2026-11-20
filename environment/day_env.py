@@ -10,17 +10,25 @@ class DayEnv(gymnasium.Env):
     A Gym environment for simulating a day of macro tracking and food consumption.
     """
     
-    def __init__(self):
+    def __init__(self, wake_hour=8, wake_minute=0):
         super().__init__()
         
         # Fixed macro targets (in grams or kcal)
-        self.target_calories = 2400
-        self.target_protein = 150
-        self.target_carbs = 200
-        self.target_fat = 65
+        # self.target_calories = 2400
+        # self.target_protein = 150
+        # self.target_carbs = 200
+        # self.target_fat = 65
+        self.target_calories = 1900
+        self.target_protein = 105
+        self.target_carbs = 240
+        self.target_fat = 55
         
         # Timestep constants
+        self.wake_hour = wake_hour
+        self.wake_minute = wake_minute
         self.total_steps = 30  # 30-minute intervals between 8:00am - 11:00pm
+        self.generated_busy_blocks = []
+
         self.snack_fullness_duration = 6  # steps
         self.meal_fullness_duration = 12  # steps
         
@@ -73,8 +81,10 @@ class DayEnv(gymnasium.Env):
             random.seed(seed)
 
         archetype = random.choice(['light', 'busy', 'workout'])
-        self.busy_blocks, self.workout_steps = self._generate_schedule(archetype)
+        self.generated_busy_blocks, self.workout_steps = self._generate_schedule(archetype)
         self.current_archetype = archetype
+        self.busy_blocks = sorted(set(self.generated_busy_blocks))
+
         
         # Initialize hunger and fullness
         self.hunger = 0.3  # Wake up moderately hungry
@@ -284,13 +294,10 @@ class DayEnv(gymnasium.Env):
         Returns:
             tuple: (observation, reward, done, truncated, info)
         """
-        # Increment timestep
-        self.current_step += 1
-        
         # Remember the attempted action before any override.
         attempted_action = action
         
-        # Check if action is valid
+        # Check if action is valid for the current step
         is_on_cooldown = self.fullness_cooldown > 0
         if is_on_cooldown:
             action = 0
@@ -313,6 +320,9 @@ class DayEnv(gymnasium.Env):
         # Update hunger and fullness
         is_workout_step = self.current_step in self.workout_steps
         self._update_hunger_fullness(is_workout_step)
+        
+        # Increment timestep after processing this step
+        self.current_step += 1
         
         # Calculate reward
         reward = self._calculate_reward()
@@ -359,6 +369,38 @@ class DayEnv(gymnasium.Env):
 
             # Bonus for hitting all four within 10%
             if all_hit:
-                reward += 1.0
+                reward += 4.0
 
         return reward
+    
+    def time_to_step(self, time_str):
+        # Parse "9:00am" or "11:30pm"
+        time_str = time_str.strip().lower()
+        ampm = "am" if "am" in time_str else "pm"
+        time_str = time_str.replace("am", "").replace("pm", "").strip()
+        hours, minutes = map(int, time_str.split(":"))
+        if ampm == "pm" and hours != 12:
+            hours += 12
+        if ampm == "am" and hours == 12:
+            hours = 0
+        total_minutes = hours * 60 + minutes
+        wake_minutes = self.wake_hour * 60 + self.wake_minute
+        step = (total_minutes - wake_minutes) // 30
+        return max(0, min(step, self.total_steps - 1))
+
+    def step_to_time(self, step):
+        """
+        Convert a step index to a human-readable time string, based on wake time.
+
+        Args:
+            step (int): Step index (0-based)
+
+        Returns:
+            str: Time string like '7:30am'
+        """
+        total_minutes = self.wake_hour * 60 + self.wake_minute + step * 30
+        hours = total_minutes // 60
+        mins = total_minutes % 60
+        ampm = "am" if hours < 12 else "pm"
+        display_hour = hours if 1 <= hours <= 12 else (hours - 12 if hours > 12 else 12)
+        return f"{display_hour}:{mins:02d}{ampm}"
